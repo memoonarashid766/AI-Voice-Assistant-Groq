@@ -1,0 +1,6 @@
+# Dependencies for the Python serverless functions under api/.
+# Vercel auto-detects this file and installs these for each function.
+
+groq>=0.11.0
+gTTS>=2.5.1
+python-dotenv>=1.0.1

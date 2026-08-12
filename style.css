@@ -1,0 +1,235 @@
+/* Same palette/classes as the original Streamlit app's injected CSS:
+   primary #3B6EA5, background #FFFFFF, secondary background #F0F2F5,
+   text #1A1A1A, sans-serif. Layout is now a plain two-column page
+   (sidebar + main) instead of Streamlit's sidebar, but the colors,
+   box styles, and section structure are preserved as-is. */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #FFFFFF;
+  color: #1A1A1A;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background-color: #F0F2F5;
+  padding: 20px 18px;
+  border-right: 1px solid #e3e7ec;
+}
+
+.sidebar h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.8rem 0;
+  color: #1A1A1A;
+}
+
+.meta-line {
+  font-size: 0.88rem;
+  color: #33404f;
+  margin: 0.3rem 0;
+}
+
+.sidebar hr {
+  border: none;
+  border-top: 1px solid #dde3ea;
+  margin: 1rem 0;
+}
+
+.slider-label {
+  font-size: 0.88rem;
+  color: #33404f;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+#speed-slider { width: 100%; accent-color: #3B6EA5; }
+
+.limit-note {
+  color: #8a94a1;
+  font-size: 0.8rem;
+  margin: 0.4rem 0 0 0;
+}
+
+#exit-commands {
+  display: block;
+  background: #fff;
+  border: 1px solid #dde3ea;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  color: #33404f;
+}
+
+.main-content {
+  flex: 1;
+  max-width: 760px;
+  padding: 32px 40px;
+}
+
+.main-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.1rem 0;
+  color: #1A1A1A;
+}
+
+.subtitle {
+  color: #5f6b7a;
+  font-size: 0.98rem;
+  margin: 0 0 1.4rem 0;
+}
+
+.warning-box {
+  background-color: #FCEFE3;
+  border: 1px solid #edd3ad;
+  color: #7a4a10;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.status-line {
+  font-size: 1rem;
+  padding: 8px 0;
+  border-top: 1px solid #e3e7ec;
+  border-bottom: 1px solid #e3e7ec;
+  margin-bottom: 1.2rem;
+}
+
+.status-value { font-weight: 600; }
+.status-ready       { color: #2f7a4f; }
+.status-recognizing { color: #b1720c; }
+.status-processing  { color: #2c5f9e; }
+.status-speaking    { color: #6d3fae; }
+.status-error       { color: #a33a3a; }
+
+.section-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #33404f;
+  margin-bottom: 0.3rem;
+  margin-top: 1rem;
+}
+
+.voice-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.primary-btn {
+  background-color: #3B6EA5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary-btn:hover:not(:disabled) { background-color: #325e8c; }
+.primary-btn:disabled { background-color: #a9bdd3; cursor: not-allowed; }
+
+.secondary-btn {
+  background-color: #fff;
+  color: #33404f;
+  border: 1px solid #cfd6df;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.secondary-btn:hover:not(:disabled) { background-color: #F5F7FA; }
+.secondary-btn:disabled { color: #b7bfc9; cursor: not-allowed; }
+
+.full-width { width: 100%; }
+
+.speech-box {
+  background-color: #F5F7FA;
+  border: 1px solid #dde3ea;
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-height: 54px;
+  font-size: 1rem;
+  color: #1A1A1A;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.response-box {
+  background-color: #EAF2FB;
+  border: 1px solid #cfe0f2;
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-height: 54px;
+  font-size: 1rem;
+  color: #1A1A1A;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.placeholder-text { color: #8a94a1; }
+
+.typed-fallback {
+  margin-top: 1.2rem;
+  border: 1px solid #dde3ea;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.typed-fallback summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #33404f;
+  font-size: 0.92rem;
+}
+.typed-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+#typed-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #cfd6df;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.history-title {
+  font-size: 1.1rem;
+  color: #1A1A1A;
+  margin-top: 0.4rem;
+}
+
+.history-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #33404f;
+}
+.history-text {
+  margin: 0.2rem 0 0.6rem 0;
+  color: #1A1A1A;
+  white-space: pre-wrap;
+}
+.history-item {
+  border-bottom: 1px solid #e3e7ec;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e3e7ec; }
+  .main-content { padding: 20px; max-width: 100%; }
+  .voice-controls { flex-direction: column; }
+}

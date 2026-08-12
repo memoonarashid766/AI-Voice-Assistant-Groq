@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Voice Assistant</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="layout">
+
+    <aside class="sidebar">
+      <h2>Settings</h2>
+      <p class="meta-line">Groq model: set via GROQ_MODEL on the server</p>
+      <p class="meta-line">TTS: gTTS (automatic playback)</p>
+
+      <hr />
+      <p class="section-label">Voice output</p>
+      <label for="speed-slider" class="slider-label">Speaking speed: <span id="speed-value">1.0</span></label>
+      <input type="range" id="speed-slider" min="0.7" max="1.3" step="0.05" value="1.0" />
+      <p class="limit-note">Below 0.85 uses gTTS's slow mode.</p>
+
+      <hr />
+      <p class="section-label">Exit commands (voice or typed)</p>
+      <code id="exit-commands">exit, stop, quit, goodbye, bye</code>
+
+      <hr />
+      <button id="clear-btn" class="secondary-btn full-width">Clear History</button>
+    </aside>
+
+    <main class="main-content">
+      <h1 class="main-title">AI Voice Assistant</h1>
+      <p class="subtitle">Click Start Listening and speak — the assistant replies automatically, by voice.</p>
+
+      <div id="browser-warning" class="warning-box" style="display:none;">
+        Your browser doesn't support in-browser speech recognition (this needs a
+        recent Chrome, Edge, or Safari). You can still use typed input below.
+      </div>
+
+      <div class="status-line">
+        Status: <span id="status-value" class="status-value status-ready">Ready</span>
+      </div>
+
+      <div class="section-label">Voice Input</div>
+      <div class="voice-controls">
+        <button id="start-btn" class="primary-btn">Start Listening</button>
+        <button id="stop-btn" class="secondary-btn" disabled>Stop</button>
+      </div>
+      <p class="limit-note">
+        Uses your browser's own microphone and speakers — nothing is sent to a
+        server microphone, and the reply plays automatically with no play button.
+      </p>
+
+      <div class="section-label">Recognized Speech</div>
+      <div id="recognized-box" class="speech-box placeholder-text">Nothing recognized yet.</div>
+
+      <div class="section-label">Assistant Response</div>
+      <div id="response-box" class="response-box placeholder-text">No response yet.</div>
+
+      <details class="typed-fallback">
+        <summary>Type instead (no microphone needed)</summary>
+        <div class="typed-row">
+          <input type="text" id="typed-input" placeholder="Type a message..." />
+          <button id="send-btn" class="primary-btn">Send</button>
+        </div>
+      </details>
+
+      <hr />
+      <h2 class="history-title">Conversation History</h2>
+      <p id="history-empty" class="placeholder-text">Your conversation will appear here.</p>
+      <div id="history-list"></div>
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
