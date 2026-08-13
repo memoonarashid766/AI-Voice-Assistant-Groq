@@ -1,6 +1,7 @@
-# Dependencies for the Python serverless functions under api/.
-# Vercel auto-detects this file and installs these for each function.
+# Dependencies for the Python serverless function(s) under api/.
+# Vercel auto-detects this file and installs these for the app.
 
+Flask>=3.0.0
 groq>=0.11.0
 gTTS>=2.5.1
 python-dotenv>=1.0.1

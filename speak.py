@@ -1,76 +1,47 @@
 """
 api/speak.py
 -------------
-Vercel serverless function: POST /api/speak
+Text-to-speech logic for POST /api/speak.
 
-Takes response text and returns synthesized speech as raw mp3 bytes
-(Content-Type: audio/mpeg) — NOT JSON, so the browser can hand the
-response body straight to an in-memory Audio object and play it
-automatically, with no visible player and no download/play button.
+NOT a Vercel entrypoint itself anymore — see api/index.py, which is
+the single entrypoint the current Vercel Python runtime requires (see
+chat.py's docstring for the full explanation). This file keeps its
+name/location and all of its actual logic; only the outer shape
+changed, from a standalone `class handler(BaseHTTPRequestHandler)` to
+a plain function that api/index.py's Flask route calls directly.
 
-Request body (JSON):
-    {"text": "hello there", "speed": 1.0}
-
-Response:
-    200, Content-Type: audio/mpeg, raw mp3 bytes
-    or
-    non-200, Content-Type: application/json, {"error": "..."}
+Takes response text and returns synthesized speech as raw mp3 bytes —
+NOT JSON — so the browser can hand the response body straight to an
+in-memory Audio object and play it automatically, with no visible
+player and no download/play button.
 """
-
-import json
-from http.server import BaseHTTPRequestHandler
 
 from _common import synthesize_speech_mp3, TextToSpeechError
 
 
-class handler(BaseHTTPRequestHandler):
-    def _cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+def handle_speak(data: dict):
+    """
+    Args:
+        data: parsed JSON body, expected shape {"text": "...", "speed": 1.0}
 
-    def _send_error(self, status: int, message: str):
-        body = json.dumps({"error": message}).encode("utf-8")
-        self.send_response(status)
-        self._cors_headers()
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    Returns:
+        (status_code: int, content_type: str, body) where body is raw
+        mp3 bytes on success (content_type "audio/mpeg") or a dict on
+        failure (content_type "application/json") — api/index.py picks
+        the right Flask response type based on content_type.
+    """
+    text = (data.get("text") or "").strip()
+    try:
+        speed = float(data.get("speed") or 1.0)
+    except (TypeError, ValueError):
+        speed = 1.0
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self._cors_headers()
-        self.end_headers()
+    if not text:
+        return 400, "application/json", {"error": "Text is empty."}
 
-    def do_POST(self):
-        try:
-            length = int(self.headers.get("Content-Length", 0) or 0)
-            raw = self.rfile.read(length) if length else b"{}"
-            data = json.loads(raw or b"{}")
-        except Exception:
-            self._send_error(400, "Invalid JSON body.")
-            return
+    try:
+        audio_bytes = synthesize_speech_mp3(text, speed=speed)
+    except TextToSpeechError as e:
+        return 502, "application/json", {"error": str(e)}
 
-        text = (data.get("text") or "").strip()
-        try:
-            speed = float(data.get("speed") or 1.0)
-        except (TypeError, ValueError):
-            speed = 1.0
-
-        if not text:
-            self._send_error(400, "Text is empty.")
-            return
-
-        try:
-            audio_bytes = synthesize_speech_mp3(text, speed=speed)
-        except TextToSpeechError as e:
-            self._send_error(502, str(e))
-            return
-
-        self.send_response(200)
-        self._cors_headers()
-        self.send_header("Content-Type", "audio/mpeg")
-        self.send_header("Content-Length", str(len(audio_bytes)))
-        self.end_headers()
-        self.wfile.write(audio_bytes)
+    return 200, "audio/mpeg", audio_bytes

@@ -1,78 +1,49 @@
 """
 api/chat.py
 ------------
-Vercel serverless function: POST /api/chat
+Chat logic for POST /api/chat.
+
+NOT a Vercel entrypoint itself anymore — see api/index.py, which is
+the single entrypoint the current Vercel Python runtime requires (it
+loads exactly one app per project from a default location like
+api/index.py, not one per api/*.py file — see
+https://vercel.com/docs/functions/runtimes/python). This file keeps
+its name/location and all of its actual logic; only the outer shape
+changed, from a standalone `class handler(BaseHTTPRequestHandler)` to
+a plain function that api/index.py's Flask route calls directly.
 
 Takes the user's message (typed, or already transcribed in the
 browser from speech — see script.js) and returns the Groq assistant's
-reply as text. This is the ONLY place the Groq API key is used; it
-never reaches the browser.
-
-Request body (JSON):
-    {
-        "message": "hello",
-        "history": [{"role": "user"|"assistant", "content": "..."}, ...]
-    }
-
-Response body (JSON):
-    {"reply": "...", "is_exit": false}
-    or
-    {"error": "..."}   (with a non-200 status)
+reply as text. This is one of only two places (with speak.py) that
+ever import Groq logic; the API key never reaches the browser.
 """
-
-import json
-from http.server import BaseHTTPRequestHandler
 
 from _common import get_groq_reply, is_exit_command, GroqAPIError
 
 
-class handler(BaseHTTPRequestHandler):
-    def _cors_headers(self):
-        # Same-origin in production (frontend and /api are one Vercel
-        # deployment), but harmless and convenient to allow generally —
-        # e.g. testing the frontend from a different local port.
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+def handle_chat(data: dict):
+    """
+    Args:
+        data: parsed JSON body, expected shape
+            {"message": "hello", "history": [{"role": ..., "content": ...}, ...]}
 
-    def _send_json(self, status: int, payload: dict):
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self._cors_headers()
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    Returns:
+        (status_code: int, payload: dict) — payload is the JSON body
+        api/index.py should send back, e.g. (200, {"reply": "...", "is_exit": False})
+        or (400, {"error": "..."}).
+    """
+    user_text = (data.get("message") or "").strip()
+    history = data.get("history") or []
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self._cors_headers()
-        self.end_headers()
+    if not user_text:
+        return 400, {"error": "Message is empty."}
 
-    def do_POST(self):
-        try:
-            length = int(self.headers.get("Content-Length", 0) or 0)
-            raw = self.rfile.read(length) if length else b"{}"
-            data = json.loads(raw or b"{}")
-        except Exception:
-            self._send_json(400, {"error": "Invalid JSON body."})
-            return
+    if is_exit_command(user_text):
+        return 200, {"reply": "Goodbye!", "is_exit": True}
 
-        user_text = (data.get("message") or "").strip()
-        history = data.get("history") or []
+    try:
+        reply = get_groq_reply(user_text, history=history)
+    except GroqAPIError as e:
+        return 502, {"error": str(e)}
 
-        if not user_text:
-            self._send_json(400, {"error": "Message is empty."})
-            return
-
-        if is_exit_command(user_text):
-            self._send_json(200, {"reply": "Goodbye!", "is_exit": True})
-            return
-
-        try:
-            reply = get_groq_reply(user_text, history=history)
-        except GroqAPIError as e:
-            self._send_json(502, {"error": str(e)})
-            return
-
-        self._send_json(200, {"reply": reply, "is_exit": False})
+    return 200, {"reply": reply, "is_exit": False}
