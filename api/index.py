@@ -3,24 +3,20 @@ api/index.py
 -------------
 THE single Vercel Python entrypoint for this project.
 
-Why this file exists: Vercel's current Python runtime loads exactly
-ONE application per project, auto-detected from a default location —
-app.py, index.py, server.py, main.py, wsgi.py, or asgi.py, at the
-project root or inside src/, app/, or api/ (see
-https://vercel.com/docs/functions/runtimes/python). Once a project
-has a recognized Python entrypoint like this, Vercel treats it as a
-full framework app and routes ALL paths through it by default — not
-just /api/*. That's why "/" was returning Flask's own 404 page instead
-of index.html: nothing here previously answered GET "/", so Flask
-correctly reported "not found" for a route that genuinely didn't
-exist on the Flask app, even though index.html was sitting right next
-to it in the repo.
-
-The fix below is exactly that: THIS app now also serves index.html,
-script.js, and style.css directly for GET "/", "/script.js", and
-"/style.css", reading them from disk with paths computed from this
-file's own location (`PROJECT_ROOT`, the parent of api/) — never from
-the current working directory, which Vercel doesn't guarantee.
+Routing: this file needs no routing configuration in vercel.json at
+all. Vercel's current Python runtime auto-detects a Python entrypoint
+from a fixed set of recognized filenames — app.py, index.py, server.py,
+main.py, wsgi.py, or asgi.py — found at the project root or inside
+src/, app/, or api/ (see https://vercel.com/docs/functions/runtimes/python).
+"index.py" inside "api/" matches both the recognized name and the
+recognized location, and this file defines a top-level `app` (a Flask/
+WSGI application), which is exactly what Vercel looks for. Once
+detected this way, Vercel treats the project as a full framework app
+and sends every incoming path to this one function automatically —
+"/", "/script.js", "/style.css", "/api/chat", "/api/speak" all included
+— so this app's own @app.route decorators below see the real,
+original request path with no rewrite/route config needed to get
+there, and no separate config to maintain or get wrong.
 
 /api/chat and /api/speak (POST + OPTIONS) are unchanged from before.
 
@@ -28,11 +24,13 @@ chat.py, speak.py, and _common.py are untouched — they keep exposing
 plain functions that this file calls; none of their Groq/gTTS logic
 changed.
 
-See vercel.json (project root) for the `includeFiles` setting that
-makes sure index.html/style.css/script.js are actually bundled into
-this function's deployment — without it, Vercel's Python builder may
-only include files reachable via Python imports, which these three
-static files aren't.
+See vercel.json (project root) for the `includeFiles` setting, which
+is the ONE thing that's still needed: it makes sure index.html,
+style.css, and script.js are bundled into this function's deployment.
+That's unrelated to routing — it's needed because those three files
+are read at runtime via send_file(), not via a Python import, and
+Vercel's Python builder only auto-includes files reachable through
+imports.
 """
 
 import os
